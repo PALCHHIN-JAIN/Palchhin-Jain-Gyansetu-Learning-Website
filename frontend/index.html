@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GyaanSetu - Bridge to Knowledge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Google Translate Widget (hidden default UI, controlled via JS) -->
+    <style>
+      /* Hide Google's default translate toolbar and banner */
+      .goog-te-banner-frame,
+      .goog-te-balloon-frame,
+      #goog-gt-tt,
+      .goog-te-balloon-frame,
+      .skiptranslate {
+        display: none !important;
+      }
+      body {
+        top: 0 !important;
+        position: static !important;
+      }
+      .goog-te-gadget {
+        display: none !important;
+      }
+      /* Prevent Google adding top margin */
+      body.translated-ltr,
+      body.translated-rtl {
+        margin-top: 0 !important;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Hidden Google Translate element (required for the API) -->
+    <div id="google_translate_element" style="display:none;"></div>
+
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+
+    <!-- Google Translate Initialization -->
+    <script>
+      // Initialize Google Translate
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement(
+          {
+            pageLanguage: 'en',
+            includedLanguages: 'hi,bn,te,mr,ta,gu,kn,pa,or,en',
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+            autoDisplay: false,
+          },
+          'google_translate_element'
+        );
+      }
+
+      // Global function to trigger translation programmatically
+      window.triggerGoogleTranslate = function(langCode) {
+        // If English selected, restore original
+        if (langCode === 'en') {
+          // Try to restore original page
+          var frame = document.querySelector('.goog-te-banner-frame');
+          if (frame) {
+            var doc = frame.contentDocument || frame.contentWindow.document;
+            var btn = doc.querySelector('.goog-te-banner-close') || doc.querySelector('[id*="close"]');
+            if (btn) btn.click();
+          }
+          // Alternative: reload with no translation cookie
+          var cname = 'googtrans';
+          document.cookie = cname + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+          document.cookie = cname + '=/en/en; path=/;';
+          window.location.reload();
+          return;
+        }
+
+        // Set cookie for Google Translate
+        var domain = window.location.hostname;
+        document.cookie = 'googtrans=/en/' + langCode + '; path=/; domain=' + domain;
+        document.cookie = 'googtrans=/en/' + langCode + '; path=/;';
+
+        // Trigger the select element inside the translate widget
+        var tryTranslate = function(attempts) {
+          var select = document.querySelector('.goog-te-combo');
+          if (select) {
+            select.value = langCode;
+            select.dispatchEvent(new Event('change'));
+          } else if (attempts > 0) {
+            setTimeout(function() { tryTranslate(attempts - 1); }, 200);
+          }
+        };
+        tryTranslate(10);
+      };
+
+      // Check for saved language on load and apply it
+      window.addEventListener('load', function() {
+        var savedLang = localStorage.getItem('gtLang');
+        if (savedLang && savedLang !== 'en') {
+          setTimeout(function() {
+            window.triggerGoogleTranslate(savedLang);
+          }, 1000);
+        }
+      });
+    </script>
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>
+  </body>
+</html>
